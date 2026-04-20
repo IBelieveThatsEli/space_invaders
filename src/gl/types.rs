@@ -1,0 +1,9 @@
+pub type GLbitfield = u32;
+pub type GLfloat = f32;
+pub type GLint = i32;
+pub type GLsizei = i32;
+pub type GLuint = u32;
+pub type GLchar = i8;
+pub type GLenum = u32;
+pub type GLsizeiptr = isize;
+pub type GLboolean = u8;
