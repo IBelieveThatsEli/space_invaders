@@ -71,3 +71,5 @@ pub type GLTexImage2D = unsafe extern "C" fn(
 pub type GLGenerateMipmap = unsafe extern "C" fn(target: GLenum);
 
 pub type GLEnable = unsafe extern "C" fn(cap: GLenum);
+pub type GLDepthFunc = unsafe extern "C" fn(func: GLenum);
+pub type GLDepthMask = unsafe extern "C" fn(flag: GLboolean);

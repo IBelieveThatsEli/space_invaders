@@ -33,7 +33,6 @@ impl Camera {
     pub fn get_pv(&self) -> Mat4 {
         let mut view = Mat4::identity();
         view.translate(&self.position);
-
         view = Mat4::look_at(&self.position, &self.target, &self.up);
 
         let projection = Mat4::perspective(self.fovy, self.aspect, self.z_near, self.z_far);

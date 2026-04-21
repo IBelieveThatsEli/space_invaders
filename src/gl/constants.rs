@@ -14,7 +14,10 @@ pub struct Constants {
 impl Constants {
     pub const fn new() -> Self {
         Self {
-            boolean: BooleanConstants { false_: 0 },
+            boolean: BooleanConstants {
+                false_: 0,
+                true_: 1,
+            },
             buffer_bit: BufferBitConstants {
                 color: 0x00004000,
                 depth: 0x00000100,
@@ -34,6 +37,7 @@ impl Constants {
                 element_array: 0x8893,
                 static_draw: 0x88E4,
                 depth_test: 0x0B71,
+                less: 0x0201,
             },
             texture: TextureConstants {
                 texture_2d: 0x0DE1,
@@ -57,6 +61,7 @@ impl Constants {
 
 pub struct BooleanConstants {
     pub false_: GLboolean,
+    pub true_: GLboolean,
 }
 pub struct BufferBitConstants {
     pub color: GLbitfield,
@@ -86,6 +91,7 @@ pub struct BufferConstants {
     pub static_draw: GLenum,
 
     pub depth_test: GLenum,
+    pub less: GLenum,
 }
 
 pub struct TextureConstants {

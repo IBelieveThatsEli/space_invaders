@@ -34,6 +34,8 @@ struct Functions {
     tex_image_2d: GLTexImage2D,
     generate_mipmap: GLGenerateMipmap,
     enable: GLEnable,
+    depth_func: GLDepthFunc,
+    depth_mask: GLDepthMask,
 }
 
 pub struct GL {
@@ -98,7 +100,9 @@ impl GL {
                     bind_texture: std::mem::transmute(loader("glBindTexture")),
                     tex_image_2d: std::mem::transmute(loader("glTexImage2D")),
                     generate_mipmap: std::mem::transmute(loader("glGenerateMipmap")),
-                    enable: std::mem::transmute(loader("glEnable"))
+                    enable: std::mem::transmute(loader("glEnable")),
+                    depth_func: std::mem::transmute(loader("glDepthFunc")),
+                    depth_mask: std::mem::transmute(loader("glDepthMask"))
                 },
             }
         }
@@ -287,5 +291,13 @@ impl GL {
 
     pub fn enable(&self, cap: GLenum) {
         unsafe { (self.functions.enable)(cap) }
+    }
+
+    pub fn depth_func(&self, func: GLenum) {
+        unsafe { (self.functions.depth_func)(func) }
+    }
+
+    pub fn depth_mask(&self, flag: GLboolean) {
+        unsafe { (self.functions.depth_mask)(flag) }
     }
 }

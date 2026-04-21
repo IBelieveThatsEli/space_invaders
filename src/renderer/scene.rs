@@ -1,6 +1,7 @@
 use super::{camera::*, mesh::*, shader::*, transform::*};
+use crate::game::{enemy::Enemy, player::Player};
 use crate::math::math::*;
-use crate::{gl::core::*, renderer::entity::Entity};
+use crate::{gl::core::*, window::x11::events::Event};
 use std::sync::Arc;
 
 pub trait Scene {
@@ -8,39 +9,34 @@ pub trait Scene {
     fn update(&mut self, dt: f64);
     fn render(&self, gl: &GL, shader: &Shader);
     fn unload(&mut self);
+    fn handle_input(&mut self, event: &Event);
 }
 
 pub struct GameScene {
-    entities: Vec<Entity>,
+    player: Option<Player>,
+    enemies: Vec<Enemy>,
     loaded: bool,
     camera: Camera,
-    time: f64,
+    // time: f64,
 }
 
 impl GameScene {
     pub fn new() -> Self {
         Self {
-            entities: Vec::new(),
+            player: None,
+            enemies: Vec::new(),
             loaded: false,
             camera: Camera::new(
-                Vec3::new(3.0, -3.0, -10.0),
+                Vec3::new(0.0, -5.0, -11.0),
                 to_radians(45.0),
                 16.0 / 9.0,
                 0.1,
                 100.0,
-                Vec3::new(0.0, 0.0, 0.0),
+                Vec3::new(0.0, -1.0, 0.0),
                 Vec3::new(0.0, 1.0, 0.0),
             ),
-            time: 0.0,
+            // time: 0.0,
         }
-    }
-
-    pub fn add_entity(&mut self, entity: Entity) {
-        self.entities.push(entity);
-    }
-
-    pub fn add_mesh_with_transform(&mut self, mesh: Mesh, transform: Transform) {
-        self.entities.push(Entity::new(mesh, transform));
     }
 }
 
@@ -74,52 +70,23 @@ impl Scene for GameScene {
             16, 17, 19, 17, 18, 19, // top
             20, 21, 23, 21, 22, 23, // bottom
         ];
-        let mesh1 = Mesh::new(gl.clone(), &vertices, &indices, "assets/box_texture.png");
-        let transform1 = Transform::new(
-            Vec3::new(-3.0, 0.0, 0.0),
-            Vec3::new(0.0, 0.0, 0.0),
-            Vec3::new(1.0, 1.0, 1.0),
-        );
-        self.add_entity(Entity::new(mesh1, transform1));
+        let player_mesh = Mesh::new(gl.clone(), &vertices, &indices, "assets/box_texture.png");
+        self.player = Some(Player::new(player_mesh, Vec3::new(0.0, 0.0, 0.0)));
 
-        let mesh2 = Mesh::new(gl.clone(), &vertices, &indices, "assets/box_texture.png");
-        let transform2 = Transform::new(
-            Vec3::new(0.0, 0.0, 0.0),
-            Vec3::new(0.0, 0.0, 0.0),
-            Vec3::new(1.5, 1.5, 1.5),
-        );
-        self.add_entity(Entity::new(mesh2, transform2));
-
-        let mesh3 = Mesh::new(gl.clone(), &vertices, &indices, "assets/box_texture.png");
-        let transform3 = Transform::new(
-            Vec3::new(3.0, 0.0, 0.0),
-            Vec3::new(0.0, 0.0, 0.0),
-            Vec3::new(0.5, 2.0, 0.5),
-        );
-        self.add_entity(Entity::new(mesh3, transform3));
+        let enemy_mesh = Mesh::new(gl.clone(), &vertices, &indices, "assets/box_texture.png");
+        self.enemies
+            .push(Enemy::new(enemy_mesh, Vec3::new(0.0, 20.0, 0.0)));
 
         self.loaded = true;
     }
 
     fn update(&mut self, dt: f64) {
-        self.time += dt;
+        if let Some(player) = &mut self.player {
+            player.update(dt);
+        }
 
-        for (i, entity) in self.entities.iter_mut().enumerate() {
-            // Rotate each entity at different speeds
-            let rotation_speed = (i * 5) as f64;
-            entity.transform.rotate(Vec3::new(
-                dt as f32 * rotation_speed as f32,
-                dt as f32 * rotation_speed as f32 * 0.5,
-                0.0,
-            ));
-
-            // Calculate wave offset for this entity
-            let offset = i as f32 * 2.0;
-            let y_offset = (self.time as f32 + offset).sin() * 2.0;
-
-            // Set position based on original X position
-            let original_x = -3.0 + (i as f32 * 3.0); // -3.0, 0.0, 3.0
-            entity.transform.position = Vec3::new(original_x, y_offset, 0.0);
+        for enemy in &mut self.enemies {
+            enemy.update(dt);
         }
     }
 
@@ -130,56 +97,66 @@ impl Scene for GameScene {
         let pv = self.camera.get_pv();
         shader.set_uniform_mat4fv("pv", 1, gl.boolean.false_, pv.value_ptr());
 
-        // Render each entity with its own model matrix
-        for entity in &self.entities {
-            entity.render(gl, shader);
+        if let Some(player) = &self.player {
+            player.entity.render(gl, shader);
+        }
+
+        for enemy in &self.enemies {
+            enemy.entity.render(gl, shader);
         }
     }
 
     fn unload(&mut self) {
-        self.entities.clear();
+        self.player = None;
+        self.enemies.clear();
         self.loaded = false;
     }
-}
 
-pub struct MenuScene {
-    meshes: Vec<Mesh>,
-    loaded: bool,
-}
-
-impl MenuScene {
-    pub fn new() -> Self {
-        Self {
-            meshes: Vec::new(),
-            loaded: false,
+    fn handle_input(&mut self, event: &Event) {
+        if let Some(player) = &mut self.player {
+            player.handle_input(event);
         }
     }
 }
 
-impl Scene for MenuScene {
-    fn load(&mut self, _gl: Arc<GL>) {
-        if self.loaded {
-            return;
-        }
+// pub struct MenuScene {
+//     meshes: Vec<Mesh>,
+//     loaded: bool,
+// }
 
-        // Load menu-specific meshes here
-        // For example: buttons, title screen, etc.
+// impl MenuScene {
+//     pub fn new() -> Self {
+//         Self {
+//             meshes: Vec::new(),
+//             loaded: false,
+//         }
+//     }
+// }
 
-        self.loaded = true;
-    }
+// impl Scene for MenuScene {
+//     fn load(&mut self, _gl: Arc<GL>) {
+//         if self.loaded {
+//             return;
+//         }
 
-    fn update(&mut self, _dt: f64) {
-        // Update menu logic here
-    }
+//         // Load menu-specific meshes here
+//         // For example: buttons, title screen, etc.
 
-    fn render(&self, gl: &GL, shader: &Shader) {
-        for mesh in &self.meshes {
-            mesh.render(gl, shader);
-        }
-    }
+//         self.loaded = true;
+//     }
 
-    fn unload(&mut self) {
-        self.meshes.clear();
-        self.loaded = false;
-    }
-}
+//     fn update(&mut self, _dt: f64) {
+//         // Update menu logic here
+//     }
+
+//     fn render(&self, gl: &GL, shader: &Shader) {
+//         for mesh in &self.meshes {
+//             mesh.render(gl, shader);
+//         }
+//     }
+
+//     fn unload(&mut self) {
+//         self.meshes.clear();
+//         self.loaded = false;
+//     }
+// }

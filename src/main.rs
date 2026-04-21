@@ -1,4 +1,5 @@
 mod app;
+mod game;
 mod gl;
 mod input;
 mod math;

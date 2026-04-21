@@ -66,9 +66,9 @@ impl Mesh {
         self.model = self.model.scale(&scale);
     }
 
-    pub fn render(&self, gl: &GL, shader: &Shader) {
-        shader.bind();
-        shader.set_uniform_mat4fv("model", 1, gl.boolean.false_, self.model.value_ptr());
+    pub fn render(&self, gl: &GL, _shader: &Shader) {
+        // shader.bind();
+        // shader.set_uniform_mat4fv("model", 1, gl.boolean.false_, self.model.value_ptr());
         self.texture.bind();
         self.vao.bind();
         self.ebo.bind();

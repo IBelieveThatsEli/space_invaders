@@ -17,6 +17,8 @@ impl Engine {
         let gl = Arc::new(GL::load_with(|s| window.get_proc_address(s)));
 
         gl.enable(gl.buffer.depth_test);
+        gl.depth_func(gl.buffer.less);
+        gl.depth_mask(gl.boolean.true_);
 
         let mut scene = GameScene::new();
         scene.load(gl.clone());
@@ -38,8 +40,10 @@ impl Engine {
 
         let event = self.window.poll_events();
 
-        match event {
-            Some(e) => match e {
+        if let Some(e) = event {
+            self.scene.handle_input(&e);
+
+            match e {
                 Event::Close => {}
                 Event::Resize(width, height) => {
                     self.gl.viewport(0, 0, width as i32, height as i32);
@@ -52,9 +56,9 @@ impl Engine {
                 Event::MouseScroll(_x, _y) => {}
                 Event::CursorPos(_x, _y) => {}
                 Event::CursorEnter(_entered) => {}
-            },
-            _ => {}
+            }
         }
+
         self.scene.update(dt);
         self.scene.render(&self.gl, &self.shader);
 
