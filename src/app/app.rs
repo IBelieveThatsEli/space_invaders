@@ -1,18 +1,22 @@
 use super::engine::Engine;
+use super::time::Time;
 
 pub struct App {
     engine: Engine,
+    time: Time,
 }
 
 impl App {
     pub fn new() -> Self {
         let engine = Engine::new();
+        let time = Time::new();
 
-        Self { engine }
+        Self { engine, time }
     }
     pub fn run(&mut self) {
         while self.engine.is_open() {
-            self.engine.update(0.0);
+            self.time.update();
+            self.engine.update(self.time.delta());
         }
     }
 }

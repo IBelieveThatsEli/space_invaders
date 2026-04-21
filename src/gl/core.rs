@@ -33,6 +33,7 @@ struct Functions {
     bind_texture: GLBindTexture,
     tex_image_2d: GLTexImage2D,
     generate_mipmap: GLGenerateMipmap,
+    enable: GLEnable,
 }
 
 pub struct GL {
@@ -97,6 +98,7 @@ impl GL {
                     bind_texture: std::mem::transmute(loader("glBindTexture")),
                     tex_image_2d: std::mem::transmute(loader("glTexImage2D")),
                     generate_mipmap: std::mem::transmute(loader("glGenerateMipmap")),
+                    enable: std::mem::transmute(loader("glEnable"))
                 },
             }
         }
@@ -281,5 +283,9 @@ impl GL {
 
     pub fn generate_mipmap(&self, target: GLenum) {
         unsafe { (self.functions.generate_mipmap)(target) }
+    }
+
+    pub fn enable(&self, cap: GLenum) {
+        unsafe { (self.functions.enable)(cap) }
     }
 }

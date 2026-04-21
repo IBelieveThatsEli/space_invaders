@@ -69,3 +69,5 @@ pub type GLTexImage2D = unsafe extern "C" fn(
     data: *const ffi::c_void,
 );
 pub type GLGenerateMipmap = unsafe extern "C" fn(target: GLenum);
+
+pub type GLEnable = unsafe extern "C" fn(cap: GLenum);

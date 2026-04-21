@@ -15,7 +15,10 @@ impl Constants {
     pub const fn new() -> Self {
         Self {
             boolean: BooleanConstants { false_: 0 },
-            buffer_bit: BufferBitConstants { color: 0x00004000 },
+            buffer_bit: BufferBitConstants {
+                color: 0x00004000,
+                depth: 0x00000100,
+            },
             primitive: PrimitiveConstants { triangles: 0x0004 },
             data_type: DataTypeConstants {
                 float: 0x1406,
@@ -30,6 +33,7 @@ impl Constants {
                 array: 0x8892,
                 element_array: 0x8893,
                 static_draw: 0x88E4,
+                depth_test: 0x0B71,
             },
             texture: TextureConstants {
                 texture_2d: 0x0DE1,
@@ -56,6 +60,7 @@ pub struct BooleanConstants {
 }
 pub struct BufferBitConstants {
     pub color: GLbitfield,
+    pub depth: GLenum,
 }
 pub struct PrimitiveConstants {
     pub triangles: GLenum,
@@ -79,6 +84,8 @@ pub struct BufferConstants {
 
     //usage
     pub static_draw: GLenum,
+
+    pub depth_test: GLenum,
 }
 
 pub struct TextureConstants {

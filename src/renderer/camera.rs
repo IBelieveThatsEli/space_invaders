@@ -6,21 +6,37 @@ pub struct Camera {
     pub aspect: f32,
     pub z_near: f32,
     pub z_far: f32,
+    pub target: Vec3,
+    pub up: Vec3,
 }
 
 impl Camera {
-    pub fn new(position: Vec3, fovy: f32, aspect: f32, z_near: f32, z_far: f32) -> Self {
+    pub fn new(
+        position: Vec3,
+        fovy: f32,
+        aspect: f32,
+        z_near: f32,
+        z_far: f32,
+        target: Vec3,
+        up: Vec3,
+    ) -> Self {
         Self {
             position,
             fovy,
             aspect,
             z_near,
             z_far,
+            target,
+            up,
         }
     }
     pub fn get_pv(&self) -> Mat4 {
         let mut view = Mat4::identity();
         view.translate(&self.position);
+
+        let look = Mat4::look_at(&self.position, &self.target, &self.up);
+
+        view.mul(&look);
 
         let projection = Mat4::perspective(self.fovy, self.aspect, self.z_near, self.z_far);
 
