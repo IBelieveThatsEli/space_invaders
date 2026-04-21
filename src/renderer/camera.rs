@@ -1,4 +1,4 @@
-use rmath::{Mat4, Vec3};
+use crate::math::math::*;
 
 pub struct Camera {
     pub position: Vec3,
@@ -34,9 +34,7 @@ impl Camera {
         let mut view = Mat4::identity();
         view.translate(&self.position);
 
-        let look = Mat4::look_at(&self.position, &self.target, &self.up);
-
-        view.mul(&look);
+        view = Mat4::look_at(&self.position, &self.target, &self.up);
 
         let projection = Mat4::perspective(self.fovy, self.aspect, self.z_near, self.z_far);
 

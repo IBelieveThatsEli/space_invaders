@@ -1,6 +1,6 @@
 use crate::gl::core::*;
+use crate::math::math::*;
 use crate::renderer::{buffer::*, shader::*, texture::*, vertex_array::*};
-use rmath::{Mat4, Vec3};
 use std::ffi;
 use std::sync::Arc;
 
@@ -55,12 +55,11 @@ impl Mesh {
     }
 
     pub fn set_position(&mut self, position: Vec3) {
-        self.model = Mat4::identity();
-        self.model.translate(&position);
+        self.model = self.model.translate(&position);
     }
 
     pub fn set_rotation(&mut self, rotation: Vec3) {
-        self.model.rotate(&rotation);
+        self.model = self.model.rotate(&rotation);
     }
 
     pub fn set_scale(&mut self, scale: Vec3) {

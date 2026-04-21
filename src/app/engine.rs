@@ -55,7 +55,6 @@ impl Engine {
             },
             _ => {}
         }
-
         self.scene.update(dt);
         self.scene.render(&self.gl, &self.shader);
 

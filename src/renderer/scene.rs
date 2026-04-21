@@ -105,20 +105,22 @@ impl Scene for GameScene {
     fn update(&mut self, dt: f64) {
         self.time += dt;
 
-        // Example: Rotate and move entities
         for (i, entity) in self.entities.iter_mut().enumerate() {
             // Rotate each entity at different speeds
-            let rotation_speed = (i + 1) as f64;
+            let rotation_speed = (i * 5) as f64;
             entity.transform.rotate(Vec3::init(
                 dt as f32 * rotation_speed as f32,
                 dt as f32 * rotation_speed as f32 * 0.5,
                 0.0,
             ));
 
-            // Move entities in a wave pattern
+            // Calculate wave offset for this entity
             let offset = i as f32 * 2.0;
-            let y_pos = (self.time as f32 + offset).sin() * 2.0;
-            entity.transform.position.add(&Vec3::init(0.0, y_pos, 0.0));
+            let y_offset = (self.time as f32 + offset).sin() * 2.0;
+
+            // Set position based on original X position
+            let original_x = -3.0 + (i as f32 * 3.0); // -3.0, 0.0, 3.0
+            entity.transform.position = Vec3::init(original_x, y_offset, 0.0);
         }
     }
 

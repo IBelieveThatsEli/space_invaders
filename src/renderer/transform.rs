@@ -29,19 +29,25 @@ impl Transform {
         model.translate(&self.position);
 
         // Rotate (order: Y -> X -> Z)
+        let mut rotation = Mat4::identity();
         let rot = extract(self.rotation.simd);
         if rot[1] != 0.0 {
-            model.rotate(&Vec3::init(0.0, rot[1], 0.0));
+            rotation.rotate(&Vec3::init(0.0, rot[1], 0.0));
         }
         if rot[0] != 0.0 {
-            model.rotate(&Vec3::init(rot[0], 0.0, 0.0));
+            rotation.rotate(&Vec3::init(rot[0], 0.0, 0.0));
         }
         if rot[2] != 0.0 {
-            model.rotate(&Vec3::init(0.0, 0.0, rot[2]));
+            rotation.rotate(&Vec3::init(0.0, 0.0, rot[2]));
         }
 
+        model.mul(&rotation);
+
         // Scale
-        model.scale(&self.scale);
+        let mut sc = Mat4::identity();
+        sc.scale(&self.scale);
+
+        model.mul(&sc);
 
         model
     }
