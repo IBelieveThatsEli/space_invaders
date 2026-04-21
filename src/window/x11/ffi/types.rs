@@ -44,13 +44,14 @@ pub struct ConfigureEvent {
     pub serial: ffi::c_ulong,
     pub send_event: ffi::c_int,
     pub display: *mut Display,
-    pub window: Window,
+    pub event: ffi::c_ulong,
+    pub window: ffi::c_ulong,
     pub x: ffi::c_int,
     pub y: ffi::c_int,
     pub width: ffi::c_int,
     pub height: ffi::c_int,
     pub border_width: ffi::c_int,
-    pub above: Window,
+    pub above: ffi::c_ulong,
     pub override_redirect: ffi::c_int,
 }
 

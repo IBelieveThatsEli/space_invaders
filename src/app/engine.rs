@@ -38,8 +38,8 @@ impl Engine {
         let vao = VAO::new(gl.clone());
         vao.bind();
 
-        let ebo = EBO::new(gl.clone(), &indices);
         let vbo = VBO::new(gl.clone(), &vertices);
+        let ebo = EBO::new(gl.clone(), &indices);
 
         vao.attrib_pointer(
             0,
@@ -94,7 +94,9 @@ impl Engine {
         match event {
             Some(e) => match e {
                 Event::Close => {}
-                Event::Resize(_width, _height) => {}
+                Event::Resize(width, height) => {
+                    self.gl.viewport(0, 0, width as i32, height as i32);
+                }
                 Event::Iconified(_iconified) => {}
                 Event::Focused(_focused) => {}
                 Event::Maximized(_maximized) => {}

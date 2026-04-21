@@ -67,7 +67,7 @@ impl Shader {
         gl.link_program(program);
 
         gl.delete_shader(vs);
-        gl.create_shader(fs);
+        gl.delete_shader(fs);
 
         program
     }
