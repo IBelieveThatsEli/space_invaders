@@ -63,7 +63,7 @@ impl Mesh {
     }
 
     pub fn set_scale(&mut self, scale: Vec3) {
-        self.model.scale(&scale);
+        self.model = self.model.scale(&scale);
     }
 
     pub fn render(&self, gl: &GL, shader: &Shader) {

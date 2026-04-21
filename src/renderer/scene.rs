@@ -1,6 +1,5 @@
-use rmath::{Vec3, common::to_radians};
-
 use super::{camera::*, mesh::*, shader::*, transform::*};
+use crate::math::math::*;
 use crate::{gl::core::*, renderer::entity::Entity};
 use std::sync::Arc;
 
@@ -24,13 +23,13 @@ impl GameScene {
             entities: Vec::new(),
             loaded: false,
             camera: Camera::new(
-                Vec3::init(3.0, -3.0, -20.0),
+                Vec3::new(3.0, -3.0, -10.0),
                 to_radians(45.0),
                 16.0 / 9.0,
                 0.1,
                 100.0,
-                Vec3::init(0.0, 0.0, 0.0),
-                Vec3::init(0.0, 1.0, 0.0),
+                Vec3::new(0.0, 0.0, 0.0),
+                Vec3::new(0.0, 1.0, 0.0),
             ),
             time: 0.0,
         }
@@ -77,25 +76,25 @@ impl Scene for GameScene {
         ];
         let mesh1 = Mesh::new(gl.clone(), &vertices, &indices, "assets/box_texture.png");
         let transform1 = Transform::new(
-            Vec3::init(-3.0, 0.0, 0.0),
-            Vec3::init(0.0, 0.0, 0.0),
-            Vec3::init(1.0, 1.0, 1.0),
+            Vec3::new(-3.0, 0.0, 0.0),
+            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::new(1.0, 1.0, 1.0),
         );
         self.add_entity(Entity::new(mesh1, transform1));
 
         let mesh2 = Mesh::new(gl.clone(), &vertices, &indices, "assets/box_texture.png");
         let transform2 = Transform::new(
-            Vec3::init(0.0, 0.0, 0.0),
-            Vec3::init(0.0, 0.0, 0.0),
-            Vec3::init(1.5, 1.5, 1.5),
+            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::new(1.5, 1.5, 1.5),
         );
         self.add_entity(Entity::new(mesh2, transform2));
 
         let mesh3 = Mesh::new(gl.clone(), &vertices, &indices, "assets/box_texture.png");
         let transform3 = Transform::new(
-            Vec3::init(3.0, 0.0, 0.0),
-            Vec3::init(0.0, 0.0, 0.0),
-            Vec3::init(0.5, 2.0, 0.5),
+            Vec3::new(3.0, 0.0, 0.0),
+            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::new(0.5, 2.0, 0.5),
         );
         self.add_entity(Entity::new(mesh3, transform3));
 
@@ -108,7 +107,7 @@ impl Scene for GameScene {
         for (i, entity) in self.entities.iter_mut().enumerate() {
             // Rotate each entity at different speeds
             let rotation_speed = (i * 5) as f64;
-            entity.transform.rotate(Vec3::init(
+            entity.transform.rotate(Vec3::new(
                 dt as f32 * rotation_speed as f32,
                 dt as f32 * rotation_speed as f32 * 0.5,
                 0.0,
@@ -120,7 +119,7 @@ impl Scene for GameScene {
 
             // Set position based on original X position
             let original_x = -3.0 + (i as f32 * 3.0); // -3.0, 0.0, 3.0
-            entity.transform.position = Vec3::init(original_x, y_offset, 0.0);
+            entity.transform.position = Vec3::new(original_x, y_offset, 0.0);
         }
     }
 

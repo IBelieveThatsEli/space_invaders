@@ -37,36 +37,12 @@ impl Vec3 {
         }
     }
 
-    pub fn add(a: &Self, b: &Self) -> Self {
-        unsafe {
-            let va = Self::to_simd(a);
-            let vb = Self::to_simd(b);
-
-            let result = _mm_add_ps(va, vb);
-            let r: [f32; 4] = std::mem::transmute(result);
-
-            Self {
-                x: r[0],
-                y: r[1],
-                z: r[2],
-            }
-        }
+    pub fn add(&self, other: &Self) -> Self {
+        unsafe { Self::from_simd(&_mm_add_ps(self.to_simd(), other.to_simd())) }
     }
 
-    pub fn sub(a: &Self, b: &Self) -> Self {
-        unsafe {
-            let va = Self::to_simd(a);
-            let vb = Self::to_simd(b);
-
-            let result = _mm_sub_ps(va, vb);
-            let r: [f32; 4] = std::mem::transmute(result);
-
-            Self {
-                x: r[0],
-                y: r[1],
-                z: r[2],
-            }
-        }
+    pub fn sub(&self, other: &Self) -> Self {
+        unsafe { Self::from_simd(&_mm_sub_ps(self.to_simd(), other.to_simd())) }
     }
 
     pub fn dot(a: &Self, b: &Self) -> f32 {
@@ -161,6 +137,7 @@ impl Vec4 {
 }
 
 // Matrix stuff
+#[derive(Copy, Clone)]
 pub struct Mat4 {
     cols: [__m128; 4],
 }
@@ -281,13 +258,13 @@ impl Mat4 {
         self.cols.as_ptr() as *const f32
     }
 
-    pub fn mul(&self, other: &self) -> Self {
+    pub fn mul(&self, other: &Self) -> Self {
         Self {
             cols: [
-                Self::mul_col(&self, other.cols[0]).to_simd(),
-                Self::mul_col(&self, other.cols[1]).to_simd(),
-                Self::mul_col(&self, other.cols[2]).to_simd(),
-                Self::mul_col(&self, other.cols[3]).to_simd(),
+                Self::mul_col(&self, &Vec4::from_simd(&other.cols[0])).to_simd(),
+                Self::mul_col(&self, &Vec4::from_simd(&other.cols[1])).to_simd(),
+                Self::mul_col(&self, &Vec4::from_simd(&other.cols[2])).to_simd(),
+                Self::mul_col(&self, &Vec4::from_simd(&other.cols[3])).to_simd(),
             ],
         }
     }
@@ -306,7 +283,7 @@ impl Mat4 {
         }
     }
 
-    fn mul_col(&self, col: &Vec3) -> Vec3 {
+    fn mul_col(&self, col: &Vec4) -> Vec4 {
         unsafe {
             let xxxx = _mm_shuffle_ps(col.to_simd(), col.to_simd(), 0x00);
             let yyyy = _mm_shuffle_ps(col.to_simd(), col.to_simd(), 0x55);
@@ -322,7 +299,7 @@ impl Mat4 {
             let sum0 = _mm_add_ps(mul0, mul1);
             let sum1 = _mm_add_ps(mul2, mul3);
 
-            Vec3::from_simd(&_mm_add_ps(sum0, sum1))
+            Vec4::from_simd(&_mm_add_ps(sum0, sum1))
         }
     }
 }
