@@ -1,7 +1,9 @@
 pub mod buffer;
 pub mod camera;
+pub mod entity;
 pub mod mesh;
 pub mod scene;
 pub mod shader;
 pub mod texture;
+pub mod transform;
 pub mod vertex_array;

@@ -31,8 +31,8 @@ impl Engine {
             shader,
         }
     }
-    pub fn update(&mut self, _dt: f64) {
-        self.gl.clear_color(0.2, 0.3, 0.4, 1.0);
+    pub fn update(&mut self, dt: f64) {
+        self.gl.clear_color(0.0, 0.0, 0.0, 1.0);
         self.gl
             .clear(self.gl.buffer_bit.color | self.gl.buffer_bit.depth);
 
@@ -56,6 +56,7 @@ impl Engine {
             _ => {}
         }
 
+        self.scene.update(dt);
         self.scene.render(&self.gl, &self.shader);
 
         self.window.swap_buffers();

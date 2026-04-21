@@ -1,7 +1,7 @@
 use rmath::{Vec3, common::to_radians};
 
-use super::{camera::*, mesh::*, shader::*};
-use crate::gl::core::*;
+use super::{camera::*, mesh::*, shader::*, transform::*};
+use crate::{gl::core::*, renderer::entity::Entity};
 use std::sync::Arc;
 
 pub trait Scene {
@@ -12,15 +12,16 @@ pub trait Scene {
 }
 
 pub struct GameScene {
-    meshes: Vec<Mesh>,
+    entities: Vec<Entity>,
     loaded: bool,
     camera: Camera,
+    time: f64,
 }
 
 impl GameScene {
     pub fn new() -> Self {
         Self {
-            meshes: Vec::new(),
+            entities: Vec::new(),
             loaded: false,
             camera: Camera::new(
                 Vec3::init(3.0, -3.0, -20.0),
@@ -31,11 +32,16 @@ impl GameScene {
                 Vec3::init(0.0, 0.0, 0.0),
                 Vec3::init(0.0, 1.0, 0.0),
             ),
+            time: 0.0,
         }
     }
 
-    pub fn add_mesh(&mut self, mesh: Mesh) {
-        self.meshes.push(mesh);
+    pub fn add_entity(&mut self, entity: Entity) {
+        self.entities.push(entity);
+    }
+
+    pub fn add_mesh_with_transform(&mut self, mesh: Mesh, transform: Transform) {
+        self.entities.push(Entity::new(mesh, transform));
     }
 }
 
@@ -69,28 +75,68 @@ impl Scene for GameScene {
             16, 17, 19, 17, 18, 19, // top
             20, 21, 23, 21, 22, 23, // bottom
         ];
-        let mesh = Mesh::new(gl.clone(), &vertices, &indices, "assets/box_texture.png");
-        self.meshes.push(mesh);
+        let mesh1 = Mesh::new(gl.clone(), &vertices, &indices, "assets/box_texture.png");
+        let transform1 = Transform::new(
+            Vec3::init(-3.0, 0.0, 0.0),
+            Vec3::init(0.0, 0.0, 0.0),
+            Vec3::init(1.0, 1.0, 1.0),
+        );
+        self.add_entity(Entity::new(mesh1, transform1));
+
+        let mesh2 = Mesh::new(gl.clone(), &vertices, &indices, "assets/box_texture.png");
+        let transform2 = Transform::new(
+            Vec3::init(0.0, 0.0, 0.0),
+            Vec3::init(0.0, 0.0, 0.0),
+            Vec3::init(1.5, 1.5, 1.5),
+        );
+        self.add_entity(Entity::new(mesh2, transform2));
+
+        let mesh3 = Mesh::new(gl.clone(), &vertices, &indices, "assets/box_texture.png");
+        let transform3 = Transform::new(
+            Vec3::init(3.0, 0.0, 0.0),
+            Vec3::init(0.0, 0.0, 0.0),
+            Vec3::init(0.5, 2.0, 0.5),
+        );
+        self.add_entity(Entity::new(mesh3, transform3));
 
         self.loaded = true;
     }
 
-    fn update(&mut self, _dt: f64) {
-        // Update game logic here
-        // For example: move meshes, check collisions, etc.
+    fn update(&mut self, dt: f64) {
+        self.time += dt;
+
+        // Example: Rotate and move entities
+        for (i, entity) in self.entities.iter_mut().enumerate() {
+            // Rotate each entity at different speeds
+            let rotation_speed = (i + 1) as f64;
+            entity.transform.rotate(Vec3::init(
+                dt as f32 * rotation_speed as f32,
+                dt as f32 * rotation_speed as f32 * 0.5,
+                0.0,
+            ));
+
+            // Move entities in a wave pattern
+            let offset = i as f32 * 2.0;
+            let y_pos = (self.time as f32 + offset).sin() * 2.0;
+            entity.transform.position.add(&Vec3::init(0.0, y_pos, 0.0));
+        }
     }
 
     fn render(&self, gl: &GL, shader: &Shader) {
-        for mesh in &self.meshes {
-            mesh.render(gl, shader);
-        }
         shader.bind();
+
+        // Set projection-view matrix once
         let pv = self.camera.get_pv();
         shader.set_uniform_mat4fv("pv", 1, gl.boolean.false_, pv.value_ptr());
+
+        // Render each entity with its own model matrix
+        for entity in &self.entities {
+            entity.render(gl, shader);
+        }
     }
 
     fn unload(&mut self) {
-        self.meshes.clear();
+        self.entities.clear();
         self.loaded = false;
     }
 }
