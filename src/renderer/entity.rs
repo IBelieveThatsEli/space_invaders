@@ -1,17 +1,18 @@
 use super::shader::Shader;
 use super::{mesh::Mesh, transform::Transform};
 use crate::gl::core::GL;
+use std::sync::Arc;
 
 pub struct Entity {
-    pub mesh: Mesh,
+    pub mesh: Arc<Mesh>,
     pub transform: Transform,
     pub active: bool,
 }
 
 impl Entity {
-    pub fn new(mesh: Mesh, transform: Transform) -> Self {
+    pub fn new(mesh: Arc<Mesh>, transform: Transform) -> Self {
         Self {
-            mesh,
+            mesh: mesh.clone(),
             transform,
             active: true,
         }

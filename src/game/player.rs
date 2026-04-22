@@ -2,6 +2,7 @@ use crate::input::types::{action::Action, key::Key};
 use crate::math::math::*;
 use crate::renderer::{entity::Entity, mesh::Mesh, transform::Transform};
 use crate::window::x11::events::Event;
+use std::sync::Arc;
 
 pub struct Player {
     pub entity: Entity,
@@ -10,24 +11,25 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(mesh: Mesh, position: Vec3) -> Self {
+    pub fn new(mesh: Arc<Mesh>, position: Vec3) -> Self {
         let transform =
             Transform::new(position, Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0));
 
         Self {
-            entity: Entity::new(mesh, transform),
+            entity: Entity::new(mesh.clone(), transform),
             speed: 5.0,
             movement: Vec3::new(0.0, 0.0, 0.0),
         }
     }
 
-    pub fn handle_input(&mut self, event: &Event) {
+    pub fn handle_input(&mut self, event: &Event) -> bool {
+        let mut shoot = false;
         match event {
             Event::Key(key, _, action, _) => {
                 let value = match action {
                     Action::Press => 1.0,
                     Action::Release => 0.0,
-                    _ => return,
+                    _ => return false,
                 };
 
                 match key {
@@ -35,11 +37,21 @@ impl Player {
                     Key::S => self.movement.y = -value,
                     Key::A => self.movement.x = value,
                     Key::D => self.movement.x = -value,
+                    Key::Space if *action == Action::Press => shoot = true,
                     _ => {}
                 }
             }
             _ => {}
         }
+        shoot
+    }
+
+    pub fn get_position(&self) -> Vec3 {
+        Vec3::new(
+            self.entity.transform.position.x,
+            self.entity.transform.position.y,
+            self.entity.transform.position.z,
+        )
     }
 
     pub fn update(&mut self, dt: f64) {
