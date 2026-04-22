@@ -21,7 +21,6 @@ pub struct GameScene {
     meshes: Vec<Arc<Mesh>>,
     loaded: bool,
     camera: Camera,
-    audio: Option<Audio>, // time: f64,
 }
 
 impl GameScene {
@@ -41,7 +40,6 @@ impl GameScene {
                 Vec3::new(0.0, -1.0, 0.0),
                 Vec3::new(0.0, 1.0, 0.0),
             ),
-            audio: None,
             // time: 0.0,
         }
     }
@@ -50,10 +48,6 @@ impl GameScene {
 impl Scene for GameScene {
     fn load(&mut self, gl: Arc<GL>) {
         if self.loaded {
-            self.audio = Audio::new("assets/subway_theme.mp3");
-            if let Some(audio) = &mut self.audio {
-                audio.play();
-            }
             return;
         }
         let vertices: [f32; 120] = [
@@ -103,6 +97,12 @@ impl Scene for GameScene {
             self.enemies
                 .push(Enemy::new(self.meshes[0].clone(), Vec3::new(x, 20.0, 0.0)));
         }
+
+        std::thread::spawn(|| {
+            if let Some(mut audio) = Audio::new("assets/subway_theme.mp3") {
+                audio.play();
+            }
+        });
 
         self.loaded = true;
     }
