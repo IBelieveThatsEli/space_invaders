@@ -133,6 +133,19 @@ impl Vec4 {
     pub fn to_simd(&self) -> __m128 {
         unsafe { _mm_set_ps(self.j, self.z, self.y, self.x) }
     }
+
+    pub fn from_euler(euler: &Vec3) -> Self {
+        let (sx, cx) = (euler.x * 0.5).sin_cos();
+        let (sy, cy) = (euler.y * 0.5).sin_cos();
+        let (sz, cz) = (euler.z * 0.5).sin_cos();
+
+        Self {
+            x: sx * cy * cz - cx * sy * sz,
+            y: cx * sy * cz + sx * cy * sz,
+            z: cx * cy * sz - sx * sy * cz,
+            j: cx * cy * cz + sx * sy * sz,
+        }
+    }
 }
 
 // Matrix stuff
@@ -226,28 +239,34 @@ impl Mat4 {
             self
         }
     }
-
-    pub fn rotate(mut self, v: &Vec3) -> Self {
+    pub fn rotate_quat(self, q: &Vec4) -> Self {
         unsafe {
-            let mut angles = [0.0f32; 4];
-            _mm_storeu_ps(angles.as_mut_ptr(), v.to_simd());
+            let xx = q.x * q.x;
+            let yy = q.y * q.y;
+            let zz = q.z * q.z;
+            let xy = q.x * q.y;
+            let xz = q.x * q.z;
+            let yz = q.y * q.z;
+            let wx = q.j * q.x;
+            let wy = q.j * q.y;
+            let wz = q.j * q.z;
 
-            let (x, y, z) = (angles[0], angles[1], angles[2]);
+            let rot = Mat4 {
+                cols: [
+                    _mm_setr_ps(1.0 - 2.0 * (yy + zz), 2.0 * (xy + wz), 2.0 * (xz - wy), 0.0),
+                    _mm_setr_ps(2.0 * (xy - wz), 1.0 - 2.0 * (xx + zz), 2.0 * (yz + wx), 0.0),
+                    _mm_setr_ps(2.0 * (xz + wy), 2.0 * (yz - wx), 1.0 - 2.0 * (xx + yy), 0.0),
+                    _mm_setr_ps(0.0, 0.0, 0.0, 1.0),
+                ],
+            };
 
-            let (sx, cx) = x.sin_cos();
-            let (sy, cy) = y.sin_cos();
-            let (sz, cz) = z.sin_cos();
-
-            let c0 = Vec4::new(cy * cz, sx * sy * cz - cx * sz, cx * sy * cz + sx * sz, 0.0);
-            let c1 = Vec4::new(cy * sz, sx * sy * sz + cx * cz, cx * sy * sz - sx * cz, 0.0);
-            let c2 = Vec4::new(-sy, sx * cy, cx * cy, 0.0);
-
-            self.cols[0] = Self::mul_vec4(&self, &c0).to_simd();
-            self.cols[1] = Self::mul_vec4(&self, &c1).to_simd();
-            self.cols[2] = Self::mul_vec4(&self, &c2).to_simd();
-
-            self
+            self.mul(&rot)
         }
+    }
+
+    pub fn rotate(self, v: &Vec3) -> Self {
+        let q = Vec4::from_euler(v);
+        self.rotate_quat(&q)
     }
 
     pub fn value_ptr(&self) -> *const f32 {
@@ -265,19 +284,19 @@ impl Mat4 {
         }
     }
 
-    fn mul_vec4(&self, v: &Vec4) -> Vec4 {
-        unsafe {
-            let xxxx = _mm_shuffle_ps(Vec4::to_simd(v), Vec4::to_simd(v), 0x00);
-            let yyyy = _mm_shuffle_ps(Vec4::to_simd(v), Vec4::to_simd(v), 0x55);
-            let zzzz = _mm_shuffle_ps(Vec4::to_simd(v), Vec4::to_simd(v), 0xAA);
+    // fn mul_vec4(&self, v: &Vec4) -> Vec4 {
+    //     unsafe {
+    //         let xxxx = _mm_shuffle_ps(Vec4::to_simd(v), Vec4::to_simd(v), 0x00);
+    //         let yyyy = _mm_shuffle_ps(Vec4::to_simd(v), Vec4::to_simd(v), 0x55);
+    //         let zzzz = _mm_shuffle_ps(Vec4::to_simd(v), Vec4::to_simd(v), 0xAA);
 
-            let mut result = _mm_mul_ps(self.cols[0], xxxx);
-            result = _mm_add_ps(result, _mm_mul_ps(self.cols[1], yyyy));
-            result = _mm_add_ps(result, _mm_mul_ps(self.cols[2], zzzz));
+    //         let mut result = _mm_mul_ps(self.cols[0], xxxx);
+    //         result = _mm_add_ps(result, _mm_mul_ps(self.cols[1], yyyy));
+    //         result = _mm_add_ps(result, _mm_mul_ps(self.cols[2], zzzz));
 
-            Vec4::from_simd(&result)
-        }
-    }
+    //         Vec4::from_simd(&result)
+    //     }
+    // }
 
     fn mul_col(&self, col: &Vec4) -> Vec4 {
         unsafe {

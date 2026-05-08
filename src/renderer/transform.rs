@@ -2,7 +2,7 @@ use crate::math::math::*;
 
 pub struct Transform {
     pub position: Vec3,
-    pub rotation: Vec3, // Euler angles in radians
+    pub rotation: Vec3, // Euler angles in radians :)
     pub scale: Vec3,
 }
 
@@ -37,13 +37,13 @@ impl Transform {
         self.position = self.position.add(&delta);
     }
 
-    pub fn rotate(&mut self, delta: Vec3) {
-        self.rotation = self.rotation.add(&delta);
-    }
+    // pub fn rotate(&mut self, delta: Vec3) {
+    //     self.rotation = self.rotation.add(&delta);
+    // }
 
-    pub fn set_scale(&mut self, scale: Vec3) {
-        self.scale = scale;
-    }
+    // pub fn set_scale(&mut self, scale: Vec3) {
+    //     self.scale = scale;
+    // }
 }
 
 impl Default for Transform {

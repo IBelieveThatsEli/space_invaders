@@ -4,6 +4,7 @@ use crate::renderer::{buffer::*, shader::*, texture::*, vertex_array::*};
 use std::ffi;
 use std::sync::Arc;
 
+#[allow(dead_code)]
 pub struct Mesh {
     pub vao: VAO,
     pub vbo: VBO,
@@ -54,17 +55,17 @@ impl Mesh {
         }
     }
 
-    pub fn set_position(&mut self, position: Vec3) {
-        self.model = self.model.translate(&position);
-    }
+    // pub fn set_position(&mut self, position: Vec3) {
+    //     self.model = self.model.translate(&position);
+    // }
 
-    pub fn set_rotation(&mut self, rotation: Vec3) {
-        self.model = self.model.rotate(&rotation);
-    }
+    // pub fn set_rotation(&mut self, rotation: Vec3) {
+    //     self.model = self.model.rotate(&rotation);
+    // }
 
-    pub fn set_scale(&mut self, scale: Vec3) {
-        self.model = self.model.scale(&scale);
-    }
+    // pub fn set_scale(&mut self, scale: Vec3) {
+    //     self.model = self.model.scale(&scale);
+    // }
 
     pub fn render(&self, gl: &GL, _shader: &Shader) {
         // shader.bind();
