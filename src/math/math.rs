@@ -7,11 +7,10 @@ pub fn to_radians(deg: f32) -> f32 {
     deg * value
 }
 
-pub fn to_radians_64(deg: f64) -> f64 {
-    let value = std::f64::consts::PI / 180.0;
-    deg * value
-}
-
+// pub fn to_radians_64(deg: f64) -> f64 {
+//     let value = std::f64::consts::PI / 180.0;
+//     deg * value
+// }
 // Vector stuff
 
 pub struct Vec3 {
@@ -239,16 +238,13 @@ impl Mat4 {
             let (sy, cy) = y.sin_cos();
             let (sz, cz) = z.sin_cos();
 
-            let r0 = Vec4::new(cy * cz, cy * sz, -sy, 0.0);
-            let r1 = Vec4::new(sx * sy * cz - cx * sz, sx * sy * sz + cx * cz, sx * cy, 0.0);
-            let r2 = Vec4::new(cx * sy * cz + sx * sz, cx * sy * sz - sx * cz, cx * cy, 0.0);
-            // let r0 = _mm_setr_ps(cy * cz, cy * sz, -sy, 0.0);
-            // let r1 = _mm_setr_ps(sx * sy * cz - cx * sz, sx * sy * sz + cx * cz, sx * cy, 0.0);
-            // let r2 = _mm_setr_ps(cx * sy * cz + sx * sz, cx * sy * sz - sx * cz, cx * cy, 0.0);
+            let c0 = Vec4::new(cy * cz, sx * sy * cz - cx * sz, cx * sy * cz + sx * sz, 0.0);
+            let c1 = Vec4::new(cy * sz, sx * sy * sz + cx * cz, cx * sy * sz - sx * cz, 0.0);
+            let c2 = Vec4::new(-sy, sx * cy, cx * cy, 0.0);
 
-            self.cols[0] = Self::mul_vec4(&self, &r0).to_simd();
-            self.cols[1] = Self::mul_vec4(&self, &r1).to_simd();
-            self.cols[2] = Self::mul_vec4(&self, &r2).to_simd();
+            self.cols[0] = Self::mul_vec4(&self, &c0).to_simd();
+            self.cols[1] = Self::mul_vec4(&self, &c1).to_simd();
+            self.cols[2] = Self::mul_vec4(&self, &c2).to_simd();
 
             self
         }

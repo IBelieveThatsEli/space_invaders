@@ -102,7 +102,7 @@ impl GL {
                     generate_mipmap: std::mem::transmute(loader("glGenerateMipmap")),
                     enable: std::mem::transmute(loader("glEnable")),
                     depth_func: std::mem::transmute(loader("glDepthFunc")),
-                    depth_mask: std::mem::transmute(loader("glDepthMask"))
+                    depth_mask: std::mem::transmute(loader("glDepthMask")),
                 },
             }
         }

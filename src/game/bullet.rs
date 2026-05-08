@@ -37,4 +37,12 @@ impl Bullet {
     pub fn should_despawn(&self) -> bool {
         (self.entity.transform.position.y - self.spawn_y).abs() > self.max_range
     }
+
+    pub fn get_position(&self) -> Vec3 {
+        Vec3::new(
+            self.entity.transform.position.x,
+            self.entity.transform.position.y,
+            self.entity.transform.position.z,
+        )
+    }
 }

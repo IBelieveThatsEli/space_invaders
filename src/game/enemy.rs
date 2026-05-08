@@ -7,6 +7,7 @@ pub struct Enemy {
     pub speed: f32,
     pub base_x: f32,
     pub time: f64,
+    pub health: i32,
 }
 
 impl Enemy {
@@ -22,6 +23,7 @@ impl Enemy {
             speed: 0.5,
             base_x: position.x,
             time: 0.0,
+            health: 15,
         }
     }
 
@@ -33,5 +35,24 @@ impl Enemy {
 
     pub fn reflow(&mut self, new_base_x: f32) {
         self.base_x = new_base_x;
+    }
+
+    pub fn take_damage(&mut self, damage: i32) {
+        self.health -= damage;
+    }
+
+    pub fn is_dead(&self) -> bool {
+        self.health <= 0
+    }
+
+    pub fn collides_with(&self, bullet_pos: &Vec3) -> bool {
+        let enemy_pos = &self.entity.transform.position;
+        let distance = ((enemy_pos.x - bullet_pos.x).powi(2)
+            + (enemy_pos.y - bullet_pos.y).powi(2)
+            + (enemy_pos.z - bullet_pos.z).powi(2))
+        .sqrt();
+
+        // Collision radius (adjust as needed for your game)
+        distance < 2.0
     }
 }

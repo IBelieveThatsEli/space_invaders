@@ -97,7 +97,6 @@ impl Scene for GameScene {
             self.enemies
                 .push(Enemy::new(self.meshes[0].clone(), Vec3::new(x, 20.0, 0.0)));
         }
-
         std::thread::spawn(|| {
             if let Some(mut audio) = Audio::new("assets/subway_theme.mp3") {
                 audio.play();
@@ -120,6 +119,46 @@ impl Scene for GameScene {
             bullet.update(dt);
         }
 
+        let mut bullets_to_remove = Vec::new();
+        // let mut enemies_to_remove = Vec::new();
+        for (bullet_idx, bullet) in self.bullets.iter().enumerate() {
+            let bullet_pos = bullet.get_position();
+            for enemy in &mut self.enemies {
+                if enemy.collides_with(&bullet_pos) {
+                    let was_alive = !enemy.is_dead();
+                    enemy.take_damage(5);
+
+                    if was_alive {
+                        if enemy.is_dead() {
+                            // Play death sound
+                            std::thread::spawn(|| {
+                                if let Some(mut audio) = Audio::new("assets/ohno.mp3") {
+                                    audio.play();
+                                }
+                            });
+
+                            // enemies_to_remove.push(enemy_idk);
+                        } else {
+                            // Play hit sound
+                            std::thread::spawn(|| {
+                                if let Some(mut audio) = Audio::new("assets/oof.mp3") {
+                                    audio.play();
+                                }
+                            });
+                        }
+                    }
+
+                    bullets_to_remove.push(bullet_idx);
+                    break;
+                }
+            }
+        }
+
+        // Remove bullets that hit enemies (in reverse order to maintain indices)
+        for &idx in bullets_to_remove.iter().rev() {
+            self.bullets.remove(idx);
+        }
+        self.enemies.retain(|enemy| !enemy.is_dead());
         self.enemies
             .retain(|e| e.entity.transform.position.y > -10.0);
         self.reflow_enemies();
@@ -162,6 +201,12 @@ impl Scene for GameScene {
             if should_shoot {
                 let pos = player.get_position();
                 self.bullets.push(Bullet::new(self.meshes[0].clone(), pos));
+
+                std::thread::spawn(|| {
+                    if let Some(mut audio) = Audio::new("assets/lazer.mp3") {
+                        audio.play();
+                    }
+                });
             }
         }
     }
@@ -181,6 +226,12 @@ impl GameScene {
             let new_x = start_x + i as f32 * spacing;
             enemy.reflow(new_x);
         }
+    }
+}
+
+impl Drop for GameScene {
+    fn drop(&mut self) {
+        self.unload();
     }
 }
 
