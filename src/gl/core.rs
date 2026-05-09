@@ -25,6 +25,9 @@ struct Functions {
     draw_arrays: GLDrawArrays,
     draw_elements: GLDrawElements,
     get_uniform_location: GLGetUniformLocation,
+    uniform_1i: GLUniform1i,
+    uniform_1f: GLUniform1f,
+    uniform_3f: GLUniform3f,
     uniform_4f: GLUniform4f,
     uniform_mat4fv: GLUniformMatrix4fv,
     tex_parameteri: GLTexParameteri,
@@ -92,6 +95,9 @@ impl GL {
                     draw_arrays: std::mem::transmute(loader("glDrawArrays")),
                     draw_elements: std::mem::transmute(loader("glDrawElements")),
                     get_uniform_location: std::mem::transmute(loader("glGetUniformLocation")),
+                    uniform_1i: std::mem::transmute(loader("glUniform1i")),
+                    uniform_1f: std::mem::transmute(loader("glUniform1f")),
+                    uniform_3f: std::mem::transmute(loader("glUniform3f")),
                     uniform_4f: std::mem::transmute(loader("glUniform4f")),
                     uniform_mat4fv: std::mem::transmute(loader("glUniformMatrix4fv")),
                     tex_parameteri: std::mem::transmute(loader("glTexParameteri")),
@@ -228,6 +234,16 @@ impl GL {
         unsafe { (self.functions.get_uniform_location)(program, name) }
     }
 
+    pub fn uniform_1i(&self, location: GLint, v0: GLint) {
+        unsafe { (self.functions.uniform_1i)(location, v0) }
+    }
+
+    pub fn uniform_1f(&self, location: GLint, v0: GLfloat) {
+        unsafe { (self.functions.uniform_1f)(location, v0) }
+    }
+    pub fn uniform_3f(&self, location: GLint, v0: GLfloat, v1: GLfloat, v2: GLfloat) {
+        unsafe { (self.functions.uniform_3f)(location, v0, v1, v2) }
+    }
     pub fn uniform_4f(&self, location: GLint, v0: GLfloat, v1: GLfloat, v2: GLfloat, v3: GLfloat) {
         unsafe { (self.functions.uniform_4f)(location, v0, v1, v2, v3) }
     }

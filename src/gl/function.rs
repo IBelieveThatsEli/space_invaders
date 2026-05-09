@@ -43,6 +43,9 @@ pub type GLDrawElements =
     unsafe extern "C" fn(mode: GLenum, count: GLsizei, type_: GLenum, indices: *const ffi::c_void);
 
 pub type GLGetUniformLocation = unsafe extern "C" fn(program: GLuint, name: *const GLchar) -> GLint;
+pub type GLUniform1i = unsafe extern "C" fn(location: GLint, v0: GLint);
+pub type GLUniform1f = unsafe extern "C" fn(location: GLint, v0: GLfloat);
+pub type GLUniform3f = unsafe extern "C" fn(location: GLint, v0: GLfloat, v1: GLfloat, v2: GLfloat);
 pub type GLUniform4f =
     unsafe extern "C" fn(location: GLint, v0: GLfloat, v1: GLfloat, v2: GLfloat, v3: GLfloat);
 pub type GLUniformMatrix4fv = unsafe extern "C" fn(

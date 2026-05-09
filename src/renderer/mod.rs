@@ -1,6 +1,7 @@
 pub mod buffer;
 pub mod camera;
 pub mod entity;
+pub mod gltf_mesh;
 pub mod mesh;
 pub mod scene;
 pub mod shader;

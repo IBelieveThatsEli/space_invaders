@@ -71,6 +71,24 @@ impl Shader {
 
         program
     }
+
+    pub fn set_uniform_1i(&self, location: &str, value: i32) {
+        let cstr = ffi::CString::new(location).expect("Failed to read uniform location");
+        let loc = self.gl.get_uniform_location(self.id, cstr.as_ptr());
+        self.gl.uniform_1i(loc, value);
+    }
+
+    pub fn set_uniform_3f(&self, location: &str, v0: f32, v1: f32, v2: f32) {
+        let cstr = ffi::CString::new(location).expect("Failed to read uniform location");
+        let loc = self.gl.get_uniform_location(self.id, cstr.as_ptr());
+        self.gl.uniform_3f(loc, v0, v1, v2);
+    }
+
+    pub fn set_uniform_1f(&self, location: &str, value: f32) {
+        let cstr = ffi::CString::new(location).expect("Failed to read uniform location");
+        let loc = self.gl.get_uniform_location(self.id, cstr.as_ptr());
+        self.gl.uniform_1f(loc, value);
+    }
 }
 impl Drop for Shader {
     fn drop(&mut self) {

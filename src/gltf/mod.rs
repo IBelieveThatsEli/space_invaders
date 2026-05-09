@@ -1,3 +1,5 @@
-pub mod glb;
-pub mod json;
-pub mod mesh;
+mod glb;
+mod loader;
+
+pub use glb::*;
+pub use loader::*;

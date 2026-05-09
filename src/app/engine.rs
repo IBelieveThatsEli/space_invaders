@@ -1,5 +1,5 @@
 use crate::gl::core::*;
-use crate::renderer::scene::{GameScene, Scene};
+use crate::renderer::scene::{MeshScene, Scene};
 use crate::renderer::shader::Shader;
 use crate::window::x11::{events::*, window::*};
 use std::sync::Arc;
@@ -7,7 +7,7 @@ use std::sync::Arc;
 pub struct Engine {
     window: X11Window,
     gl: Arc<GL>,
-    scene: GameScene,
+    scene: MeshScene,
     shader: Shader,
 }
 
@@ -20,7 +20,7 @@ impl Engine {
         gl.depth_func(gl.buffer.less);
         gl.depth_mask(gl.boolean.true_);
 
-        let mut scene = GameScene::new();
+        let mut scene = MeshScene::new();
         scene.load(gl.clone());
 
         let mut shader = Shader::new(gl.clone());

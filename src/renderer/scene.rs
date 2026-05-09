@@ -1,3 +1,4 @@
+use super::gltf_mesh::GltfRenderable;
 use super::{camera::*, mesh::*, shader::*};
 use crate::audio::Audio;
 use crate::game::bullet::Bullet;
@@ -235,44 +236,87 @@ impl Drop for GameScene {
     }
 }
 
-// pub struct MenuScene {
-//     meshes: Vec<Mesh>,
-//     loaded: bool,
-// }
+pub struct MeshScene {
+    gltf_models: Vec<GltfRenderable>,
+    loaded: bool,
+    camera: Camera,
+}
 
-// impl MenuScene {
-//     pub fn new() -> Self {
-//         Self {
-//             meshes: Vec::new(),
-//             loaded: false,
-//         }
-//     }
-// }
+impl MeshScene {
+    pub fn new() -> Self {
+        Self {
+            gltf_models: Vec::new(),
+            loaded: false,
+            camera: Camera::new(
+                Vec3::new(0.0, 0.0, 0.0),
+                to_radians(45.0),
+                16.0 / 9.0,
+                0.1,
+                100.0,
+                Vec3::new(0.0, -1.0, 0.0),
+                Vec3::new(0.0, 1.0, 0.0),
+            ),
+        }
+    }
+}
 
-// impl Scene for MenuScene {
-//     fn load(&mut self, _gl: Arc<GL>) {
-//         if self.loaded {
-//             return;
-//         }
+impl Scene for MeshScene {
+    fn load(&mut self, gl: Arc<GL>) {
+        if self.loaded {
+            return;
+        }
 
-//         // Load menu-specific meshes here
-//         // For example: buttons, title screen, etc.
+        // Load a GLTF model
+        match GltfRenderable::load(gl.clone(), "/home/player1/Downloads/scene.gltf") {
+            Ok(gltf_model) => {
+                // Store the model
+                // You'll need to add a field to GameScene: gltf_models: Vec<GltfRenderable>
+                self.gltf_models.push(gltf_model);
+            }
+            Err(e) => eprintln!("Failed to load GLTF model: {}", e),
+        }
 
-//         self.loaded = true;
-//     }
+        // ... rest of your load code
+        self.loaded = true;
+    }
 
-//     fn update(&mut self, _dt: f64) {
-//         // Update menu logic here
-//     }
+    fn update(&mut self, _dt: f64) {
+        // Update menu logic here
+    }
 
-//     fn render(&self, gl: &GL, shader: &Shader) {
-//         for mesh in &self.meshes {
-//             mesh.render(gl, shader);
-//         }
-//     }
+    fn render(&self, gl: &GL, shader: &Shader) {
+        shader.bind();
 
-//     fn unload(&mut self) {
-//         self.meshes.clear();
-//         self.loaded = false;
-//     }
-// }
+        // Set lighting uniforms
+        shader.set_uniform_3f("lightDir", 0.2, -1.0, -0.3);
+        shader.set_uniform_3f("lightColor", 1.0, 1.0, 1.0);
+        shader.set_uniform_3f("ambientColor", 0.3, 0.3, 0.3);
+        shader.set_uniform_3f("baseColor", 0.8, 0.8, 0.8);
+        shader.set_uniform_1i("useTexture", 0); // 0 = false, use baseColor
+
+        // Set projection-view matrix
+        let pv = self.camera.get_pv();
+        shader.set_uniform_mat4fv("pv", 1, gl.boolean.false_, pv.value_ptr());
+
+        // Render GLTF models
+        for gltf_model in &self.gltf_models {
+            shader.set_uniform_mat4fv("model", 1, gl.boolean.false_, gltf_model.model.value_ptr());
+            gltf_model.render(gl);
+        }
+    }
+
+    fn handle_input(&mut self, _event: &Event) {
+        todo!();
+    }
+
+    fn unload(&mut self) {
+        self.gltf_models.clear();
+        self.loaded = false;
+    }
+}
+
+impl Drop for MeshScene {
+    fn drop(&mut self) {
+        self.unload();
+    }
+}
