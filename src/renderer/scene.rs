@@ -267,7 +267,7 @@ impl Scene for MeshScene {
         }
 
         // Load a GLTF model
-        match GltfRenderable::load(gl.clone(), "/home/player1/Downloads/scene.gltf") {
+        match GltfRenderable::load(gl.clone(), "assets/cube.glb") {
             Ok(gltf_model) => {
                 // Store the model
                 // You'll need to add a field to GameScene: gltf_models: Vec<GltfRenderable>
@@ -287,18 +287,16 @@ impl Scene for MeshScene {
     fn render(&self, gl: &GL, shader: &Shader) {
         shader.bind();
 
-        // Set lighting uniforms
         shader.set_uniform_3f("lightDir", 0.2, -1.0, -0.3);
         shader.set_uniform_3f("lightColor", 1.0, 1.0, 1.0);
         shader.set_uniform_3f("ambientColor", 0.3, 0.3, 0.3);
         shader.set_uniform_3f("baseColor", 0.8, 0.8, 0.8);
-        shader.set_uniform_1i("useTexture", 0); // 0 = false, use baseColor
+        shader.set_uniform_1i("useTexture", 0);
+        shader.set_uniform_1i("ourTexture", 0);
 
-        // Set projection-view matrix
         let pv = self.camera.get_pv();
         shader.set_uniform_mat4fv("pv", 1, gl.boolean.false_, pv.value_ptr());
 
-        // Render GLTF models
         for gltf_model in &self.gltf_models {
             shader.set_uniform_mat4fv("model", 1, gl.boolean.false_, gltf_model.model.value_ptr());
             gltf_model.render(gl);

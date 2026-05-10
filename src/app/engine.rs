@@ -41,7 +41,7 @@ impl Engine {
         let event = self.window.poll_events();
 
         if let Some(e) = event {
-            self.scene.handle_input(&e);
+            // self.scene.handle_input(&e);
 
             match e {
                 Event::Close => {}

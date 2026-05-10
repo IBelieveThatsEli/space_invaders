@@ -1,17 +1,3 @@
-// #version 330 core
-
-// layout(location = 0) in vec3 aPos;
-// layout(location = 1) in vec2 aTex;
-
-// out vec2 TexCoords;
-
-// uniform mat4 model;
-// uniform mat4 pv;
-
-// void main() {
-//     gl_Position = pv * model * vec4(aPos, 1.0);
-//     TexCoords = aTex;
-// }
 #version 330 core
 
 layout(location = 0) in vec3 aPos;
@@ -26,9 +12,10 @@ uniform mat4 model;
 uniform mat4 pv;
 
 void main() {
-    FragPos = vec3(model * vec4(aPos, 1.0));
+    vec4 worldPos = model * vec4(aPos, 1.0);
+    FragPos = worldPos.xyz;
     Normal = mat3(transpose(inverse(model))) * aNormal;
     TexCoords = aTexCoord;
-    
-    gl_Position = pv * vec4(FragPos, 1.0);
+
+    gl_Position = pv * worldPos;
 }
