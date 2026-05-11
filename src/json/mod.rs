@@ -43,6 +43,20 @@ impl Json {
         }
     }
 
+    pub fn as_f32(&self) -> Option<f32> {
+        match self {
+            Json::Number(n) => Some(*n as f32),
+            _ => None,
+        }
+    }
+
+    pub fn as_bool(&self) -> Option<bool> {
+        match self {
+            Json::Bool(n) => Some(*n),
+            // Json::Number(n) => Some(*n),
+            _ => None,
+        }
+    }
     pub fn as_usize(&self) -> Option<usize> {
         self.as_f64().map(|n| n as usize)
     }

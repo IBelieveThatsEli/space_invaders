@@ -248,14 +248,19 @@ impl MeshScene {
             gltf_models: Vec::new(),
             loaded: false,
             camera: Camera::new(
-                Vec3::new(0.0, 0.0, 0.0),
+                Vec3::new(0.0, 0.0, -5.0),
                 to_radians(45.0),
                 16.0 / 9.0,
                 0.1,
                 100.0,
-                Vec3::new(0.0, -1.0, 0.0),
+                Vec3::new(0.0, 0.0, 0.0),
                 Vec3::new(0.0, 1.0, 0.0),
             ),
+        }
+    }
+    pub fn resize(&mut self, width: u32, height: u32) {
+        if height != 0 {
+            self.camera.aspect = width as f32 / height as f32;
         }
     }
 }
@@ -266,22 +271,35 @@ impl Scene for MeshScene {
             return;
         }
 
-        // Load a GLTF model
-        match GltfRenderable::load(gl.clone(), "assets/cube.glb") {
+        match GltfRenderable::load(gl.clone(), "assets/monkey.glb") {
             Ok(gltf_model) => {
-                // Store the model
-                // You'll need to add a field to GameScene: gltf_models: Vec<GltfRenderable>
+                gltf_model.model.scale(&Vec3::new(1.5, 1.5, 1.5));
                 self.gltf_models.push(gltf_model);
             }
             Err(e) => eprintln!("Failed to load GLTF model: {}", e),
         }
 
-        // ... rest of your load code
         self.loaded = true;
     }
 
-    fn update(&mut self, _dt: f64) {
-        // Update menu logic here
+    fn update(&mut self, dt: f64) {
+        // Rotation amount for this frame
+        let angle = 2.0 * dt as f32;
+
+        let cos_angle = angle.cos();
+        let sin_angle = angle.sin();
+
+        // Translate camera position so target becomes the origin
+        let dx = self.camera.position.x - self.camera.target.x;
+        let dz = self.camera.position.z - self.camera.target.z;
+
+        // Rotate around the Y axis
+        let rotated_x = dx * cos_angle - dz * sin_angle;
+        let rotated_z = dx * sin_angle + dz * cos_angle;
+
+        // Translate back to world space
+        self.camera.position.x = self.camera.target.x + rotated_x;
+        self.camera.position.z = self.camera.target.z + rotated_z;
     }
 
     fn render(&self, gl: &GL, shader: &Shader) {
@@ -290,21 +308,18 @@ impl Scene for MeshScene {
         shader.set_uniform_3f("lightDir", 0.2, -1.0, -0.3);
         shader.set_uniform_3f("lightColor", 1.0, 1.0, 1.0);
         shader.set_uniform_3f("ambientColor", 0.3, 0.3, 0.3);
-        shader.set_uniform_3f("baseColor", 0.8, 0.8, 0.8);
-        shader.set_uniform_1i("useTexture", 0);
-        shader.set_uniform_1i("ourTexture", 0);
 
         let pv = self.camera.get_pv();
         shader.set_uniform_mat4fv("pv", 1, gl.boolean.false_, pv.value_ptr());
 
         for gltf_model in &self.gltf_models {
             shader.set_uniform_mat4fv("model", 1, gl.boolean.false_, gltf_model.model.value_ptr());
-            gltf_model.render(gl);
+            gltf_model.render(gl, shader);
         }
     }
 
     fn handle_input(&mut self, _event: &Event) {
-        todo!();
+        // no-op for now
     }
 
     fn unload(&mut self) {

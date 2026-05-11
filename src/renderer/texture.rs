@@ -1,4 +1,4 @@
-use std::{ffi::c_void, sync::Arc};
+use std::sync::Arc;
 
 use crate::gl::{core::GL, types::*};
 use image::GenericImageView;

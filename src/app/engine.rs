@@ -47,6 +47,7 @@ impl Engine {
                 Event::Close => {}
                 Event::Resize(width, height) => {
                     self.gl.viewport(0, 0, width as i32, height as i32);
+                    self.scene.resize(width, height);
                 }
                 Event::Iconified(_iconified) => {}
                 Event::Focused(_focused) => {}
