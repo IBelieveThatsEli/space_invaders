@@ -16,7 +16,7 @@ impl Engine {
         let window = X11Window::new(800, 600, "Space_Invaders").unwrap();
         let gl = Arc::new(GL::load_with(|s| window.get_proc_address(s)));
 
-        gl.enable(gl.buffer.depth_test);
+        gl.enable(gl.buffer.depth_test | gl.buffer.cull_face);
         gl.depth_func(gl.buffer.less);
         gl.depth_mask(gl.boolean.true_);
 

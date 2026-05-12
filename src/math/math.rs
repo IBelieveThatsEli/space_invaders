@@ -103,6 +103,14 @@ impl Vec3 {
     pub fn to_simd(&self) -> __m128 {
         unsafe { _mm_set_ps(0.0, self.z, self.y, self.x) }
     }
+
+    pub fn lerp(a: Self, b: Self, t: f32) -> Self {
+        Self {
+            x: a.x + (b.x - a.x) * t,
+            y: a.y + (b.y - a.y) * t,
+            z: a.z + (b.z - a.z) * t,
+        }
+    }
 }
 
 pub struct Vec4 {
@@ -146,12 +154,40 @@ impl Vec4 {
             j: cx * cy * cz + sx * sy * sz,
         }
     }
+
+    pub fn lerp(a: Self, b: Self, t: f32) -> Self {
+        Self {
+            x: a.x + (b.x - a.x) * t,
+            y: a.y + (b.y - a.y) * t,
+            z: a.z + (b.z - a.z) * t,
+            j: a.j + (b.j - a.j) * t,
+        }
+    }
+
+    pub fn normalize_quat(q: Self) -> Self {
+        let len = (q.x * q.x + q.y * q.y + q.z * q.z + q.j * q.j).sqrt();
+        if len == 0.0 {
+            Self {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                j: 1.0,
+            }
+        } else {
+            Self {
+                x: q.x / len,
+                y: q.y / len,
+                z: q.z / len,
+                j: q.j / len,
+            }
+        }
+    }
 }
 
 // Matrix stuff
 #[derive(Copy, Clone)]
 pub struct Mat4 {
-    cols: [__m128; 4],
+    pub cols: [__m128; 4],
 }
 
 impl Mat4 {
