@@ -2,7 +2,6 @@ use crate::gl::core::*;
 use crate::gltf::*;
 use crate::math::math::*;
 use crate::renderer::{buffer::*, shader::Shader, vertex_array::*};
-use std::arch::x86_64::_mm_setr_ps;
 use std::collections::HashMap;
 use std::ffi;
 use std::sync::Arc;
@@ -237,45 +236,6 @@ impl GltfRenderable {
             self.apply_clip(&clip, new_time);
         }
     }
-    // pub fn update_animations(&mut self, dt: f32) {
-    //     self.node_transforms = self.nodes.iter().map(|n| n.transform.clone()).collect();
-
-    //     // let active_states = self
-    //     // .animation_states
-    //     // .values_mut()
-    //     // .filter(|s| s.playing)
-    //     // .cloned()
-    //     // .collect::<Vec<_>>();
-    //     let active_states = self
-    //         .animation_states
-    //         .values_mut()
-    //         .filter(|s| s.playing)
-    //         .map(|s| s.clone())
-    //         .collect::<Vec<AnimationState>>();
-
-    //     for state in active_states {
-    //         let clip = match self.animations.get(state.clip_index) {
-    //             Some(clip) => clip,
-    //             None => continue,
-    //         };
-
-    //         let mut new_time = state.time + dt * state.speed;
-
-    //         if clip.duration > 0.0 {
-    //             if state.looping {
-    //                 new_time %= clip.duration;
-    //             } else if new_time > clip.duration {
-    //                 new_time = clip.duration;
-    //             }
-    //         }
-
-    //         if let Some(runtime_state) = self.animation_states.get_mut(&clip.name) {
-    //             runtime_state.time = new_time;
-    //         }
-
-    //         self.apply_clip(clip, new_time);
-    //     }
-    // }
 
     fn apply_clip(&mut self, clip: &AnimationClip, time: f32) {
         for channel in &clip.channels {
@@ -401,7 +361,11 @@ fn sample_vec3(
             } else {
                 0.0
             };
-            lerp3(values[index], values[next], alpha)
+            // Use Vec3::lerp from math.rs
+            let a = Vec3::new(values[index][0], values[index][1], values[index][2]);
+            let b = Vec3::new(values[next][0], values[next][1], values[next][2]);
+            let result = Vec3::lerp(a, b, alpha);
+            [result.x, result.y, result.z]
         }
     }
 }
@@ -416,14 +380,25 @@ fn sample_vec4(
         return [0.0, 0.0, 0.0, 1.0];
     }
     if times.len() == 1 || values.len() == 1 {
-        return normalize_quat(values[0]);
+        let q = Vec4::new(values[0][0], values[0][1], values[0][2], values[0][3]);
+        let normalized = Vec4::normalize_quat(q);
+        return [normalized.x, normalized.y, normalized.z, normalized.j];
     }
 
     let index = find_keyframe_index(times, time);
     let next = (index + 1).min(values.len() - 1);
 
     match interpolation {
-        Interpolation::Step => normalize_quat(values[index]),
+        Interpolation::Step => {
+            let q = Vec4::new(
+                values[index][0],
+                values[index][1],
+                values[index][2],
+                values[index][3],
+            );
+            let normalized = Vec4::normalize_quat(q);
+            [normalized.x, normalized.y, normalized.z, normalized.j]
+        }
         Interpolation::Linear => {
             let t0 = times[index];
             let t1 = times[next];
@@ -432,7 +407,21 @@ fn sample_vec4(
             } else {
                 0.0
             };
-            normalize_quat(lerp4(values[index], values[next], alpha))
+            let a = Vec4::new(
+                values[index][0],
+                values[index][1],
+                values[index][2],
+                values[index][3],
+            );
+            let b = Vec4::new(
+                values[next][0],
+                values[next][1],
+                values[next][2],
+                values[next][3],
+            );
+            let lerped = Vec4::lerp(a, b, alpha);
+            let normalized = Vec4::normalize_quat(lerped);
+            [normalized.x, normalized.y, normalized.z, normalized.j]
         }
     }
 }
@@ -446,32 +435,6 @@ fn find_keyframe_index(times: &[f32], time: f32) -> usize {
     times.len().saturating_sub(1)
 }
 
-// fn lerp3(a: [f32; 3], b: [f32; 3], t: f32) -> [f32; 3] {
-//     [
-//         a[0] + (b[0] - a[0]) * t,
-//         a[1] + (b[1] - a[1]) * t,
-//         a[2] + (b[2] - a[2]) * t,
-//     ]
-// }
-
-// fn lerp4(a: [f32; 4], b: [f32; 4], t: f32) -> [f32; 4] {
-//     [
-//         a[0] + (b[0] - a[0]) * t,
-//         a[1] + (b[1] - a[1]) * t,
-//         a[2] + (b[2] - a[2]) * t,
-//         a[3] + (b[3] - a[3]) * t,
-//     ]
-// }
-
-// fn normalize_quat(q: [f32; 4]) -> [f32; 4] {
-//     let len = (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]).sqrt();
-//     if len == 0.0 {
-//         [0.0, 0.0, 0.0, 1.0]
-//     } else {
-//         [q[0] / len, q[1] / len, q[2] / len, q[3] / len]
-//     }
-// }
-
 fn node_transform_to_mat4(transform: &NodeTransform) -> Mat4 {
     let translation = mat4_translation(transform.translation);
     let rotation = quat_to_mat4(transform.rotation);
@@ -480,78 +443,17 @@ fn node_transform_to_mat4(transform: &NodeTransform) -> Mat4 {
     translation.mul(&rotation).mul(&scale)
 }
 
-fn mat4_translation(t: Vec3) -> Mat4 {
-    let mut mat = Mat4::identity();
-    // mat.values[12] = t[0];
-    // mat.values[13] = t[1];
-    // mat.values[14] = t[2];
-    unsafe {
-        mat.cols[3] = _mm_setr_ps(t[0], t[1], t[2], 1.0);
-    }
-    mat
+fn mat4_translation(t: [f32; 3]) -> Mat4 {
+    let vec = Vec3::new(t[0], t[1], t[2]);
+    Mat4::identity().translate(&vec)
 }
 
 fn mat4_scale(s: [f32; 3]) -> Mat4 {
-    let mut mat = Mat4::identity();
-    // mat.values[0] = s[0];
-    // mat.values[5] = s[1];
-    // mat.values[10] = s[2];
-    unsafe {
-        mat.cols[0] = _mm_setr_ps(s[0], 0.0, 0.0, 0.0);
-        mat.cols[1] = _mm_setr_ps(0.0, s[1], 0.0, 0.0);
-        mat.cols[2] = _mm_setr_ps(0.0, 0.0, s[2], 0.0);
-        mat.cols[3] = _mm_setr_ps(0.0, 0.0, 0.0, 1.0);
-    }
-    mat
+    let vec = Vec3::new(s[0], s[1], s[2]);
+    Mat4::identity().scale(&vec)
 }
 
 fn quat_to_mat4(q: [f32; 4]) -> Mat4 {
-    let [x, y, z, w] = normalize_quat(q);
-
-    let xx = x * x;
-    let yy = y * y;
-    let zz = z * z;
-    let xy = x * y;
-    let xz = x * z;
-    let yz = y * z;
-    let wx = w * x;
-    let wy = w * y;
-    let wz = w * z;
-    unsafe {
-        // Column-major rotation matrix.
-        // Each __m128 represents one column.
-        Mat4 {
-            cols: [
-                // Column 0
-                _mm_setr_ps(1.0 - 2.0 * (yy + zz), 2.0 * (xy + wz), 2.0 * (xz - wy), 0.0),
-                // Column 1
-                _mm_setr_ps(2.0 * (xy - wz), 1.0 - 2.0 * (xx + zz), 2.0 * (yz + wx), 0.0),
-                // Column 2
-                _mm_setr_ps(2.0 * (xz + wy), 2.0 * (yz - wx), 1.0 - 2.0 * (xx + yy), 0.0),
-                // Column 3 (translation)
-                _mm_setr_ps(0.0, 0.0, 0.0, 1.0),
-            ],
-        }
-    }
-    // Mat4 {
-    //     values: [
-    //         1.0 - 2.0 * (yy + zz),
-    //         2.0 * (xy + wz),
-    //         2.0 * (xz - wy),
-    //         0.0,
-    //         2.0 * (xy - wz),
-    //         1.0 - 2.0 * (xx + zz),
-    //         2.0 * (yz + wx),
-    //         0.0,
-    //         2.0 * (xz + wy),
-    //         2.0 * (yz - wx),
-    //         1.0 - 2.0 * (xx + yy),
-    //         0.0,
-    //         0.0,
-    //         0.0,
-    //         0.0,
-    //         1.0,
-    //     ],
-    // }
-    // de
+    let quat = Vec4::new(q[0], q[1], q[2], q[3]);
+    Mat4::identity().rotate_quat(&quat)
 }

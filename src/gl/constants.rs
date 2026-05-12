@@ -26,7 +26,7 @@ impl Constants {
             data_type: DataTypeConstants {
                 float: 0x1406,
                 unsigned_int: 0x1405,
-                // unsigned_byte: 0x1401,
+                unsigned_byte: 0x1401,
             },
             shader: ShaderConstants {
                 vertex: 0x8B31,
@@ -75,7 +75,7 @@ pub struct PrimitiveConstants {
 pub struct DataTypeConstants {
     pub float: GLenum,
     pub unsigned_int: GLenum,
-    // pub unsigned_byte: GLenum,
+    pub unsigned_byte: GLenum,
 }
 
 pub struct ShaderConstants {

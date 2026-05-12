@@ -271,9 +271,15 @@ impl Scene for MeshScene {
             return;
         }
 
-        match GltfRenderable::load(gl.clone(), "assets/monkey.glb") {
-            Ok(gltf_model) => {
+        match GltfRenderable::load(gl.clone(), "assets/low_poly_boy.glb") {
+            Ok(mut gltf_model) => {
                 gltf_model.model.scale(&Vec3::new(1.5, 1.5, 1.5));
+
+                let names = gltf_model.animation_names();
+                if let Some(first) = names.first() {
+                    gltf_model.play_animation(first, true);
+                }
+
                 self.gltf_models.push(gltf_model);
             }
             Err(e) => eprintln!("Failed to load GLTF model: {}", e),
@@ -300,6 +306,10 @@ impl Scene for MeshScene {
         // Translate back to world space
         self.camera.position.x = self.camera.target.x + rotated_x;
         self.camera.position.z = self.camera.target.z + rotated_z;
+
+        for model in &mut self.gltf_models {
+            model.update_animations(dt as f32);
+        }
     }
 
     fn render(&self, gl: &GL, shader: &Shader) {
